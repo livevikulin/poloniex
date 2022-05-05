@@ -39,20 +39,20 @@ const Quotes = () => {
         }
     };
 
-    const updateFetch: React.MutableRefObject<any> = useRef();
-
     useEffect((): () => void => {
+        let updateFetch: any;
+
         fetchQuotes();
 
         if (showModal) {
-            return () => clearInterval(updateFetch.current);
+            return () => clearInterval(updateFetch);
         } else {
-            updateFetch.current = setInterval(() => {
+            updateFetch = setInterval(() => {
                 fetchQuotes();
             }, 5000);
         }
 
-        return () => clearInterval(updateFetch.current);
+        return () => clearInterval(updateFetch);
     }, [showModal]);
 
     const handleShowPopup = (item: DataItemType) => {
