@@ -43,24 +43,25 @@ const Quotes = () => {
 
     useEffect((): () => void => {
         fetchQuotes();
-        updateFetch.current = setInterval(() => {
-            fetchQuotes();
-        }, 5000);
+
+        if (showModal) {
+            return () => clearInterval(updateFetch.current);
+        } else {
+            updateFetch.current = setInterval(() => {
+                fetchQuotes();
+            }, 5000);
+        }
 
         return () => clearInterval(updateFetch.current);
-    }, []);
+    }, [showModal]);
 
     const handleShowPopup = (item: DataItemType) => {
         setInfo(item);
         setShowModal(true);
-        clearInterval(updateFetch.current);
     };
 
     const handleClosePopup = () => {
         setShowModal(false);
-        updateFetch.current = setInterval(() => {
-            fetchQuotes();
-        }, 5000);
     };
 
     const arrQuotes: DataItemType[] | undefined = quotes && Object.entries(quotes);
