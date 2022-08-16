@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { Alert, Button, Container, Spinner, Table } from "react-bootstrap";
 import Popup from "../components/Modal";
+import {useDispatch, useSelector} from "react-redux";
+import { showModal, hideModal } from "../store/tickers";
 
 type DataItemValueType = {
     baseVolume: string,
@@ -20,49 +22,17 @@ type DataItemValueType = {
 export type DataItemType = [string, DataItemValueType];
 
 const Quotes = () => {
-    const [ quotes, setQuotes ] = useState({});
-    const [ isLoaded, setIsLoaded ] = useState(true);
-    const [ error, setError ] = useState(null);
-    const [ showModal, setShowModal ] = useState(false);
+    const state = useSelector(state => state);
+    const dispatch = useDispatch();
+    // @ts-ignore
+    const { quotes, error, isLoading, modal } = state;
     const [ info, setInfo ] = useState<DataItemType | undefined>();
 
-    const url: string = "https://poloniex.com/public?command=returnTicker";
-    const fetchQuotes = async (): Promise<void> => {
-        try {
-            const response = await fetch(url);
-            const result: object = await response.json();
-            setIsLoaded(false);
-            setQuotes(result);
-        } catch (error: any ) {
-            setError(error.message);
-            console.error(error.message);
-        }
-    };
-
-    useEffect((): () => void => {
-        let updateFetch: any;
-
-        fetchQuotes();
-
-        if (showModal) {
-            return () => clearInterval(updateFetch);
-        } else {
-            updateFetch = setInterval(() => {
-                fetchQuotes();
-            }, 5000);
-        }
-
-        return () => clearInterval(updateFetch);
-    }, [showModal]);
-
-    const handleShowPopup = (item: DataItemType) => {
+    const handleShowPopup = (item: any) => {
+        //@ts-ignore
+        dispatch(showModal());
         setInfo(item);
-        setShowModal(true);
-    };
-
-    const handleClosePopup = () => {
-        setShowModal(false);
-    };
+    }
 
     const arrQuotes: DataItemType[] | undefined = quotes && Object.entries(quotes);
 
@@ -74,8 +44,8 @@ const Quotes = () => {
                     {error}
                 </Alert>
             )}
-            {isLoaded && <Spinner animation="border" variant="primary" />}
-            {!isLoaded &&
+            {isLoading && <Spinner animation="border" variant="primary" />}
+            {!isLoading &&
                 <Table>
                     <thead>
                         <tr>
@@ -86,10 +56,11 @@ const Quotes = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {arrQuotes.map((item: DataItemType) => {
+                        {arrQuotes?.map((item: DataItemType) => {
                             const key = item[0];
                             const value = item[1];
                             const { id, last, highestBid, percentChange } = value;
+
                             return (
                                 <tr key={id}>
                                     <td>
@@ -106,9 +77,10 @@ const Quotes = () => {
             }
             {info && (
                 <Popup
-                    show={showModal}
+                    show={modal}
                     data={info}
-                    hidePopup={handleClosePopup}
+                    // @ts-ignore
+                    hidePopup={() => dispatch(hideModal())}
                 />
             )}
         </Container>
